@@ -8,6 +8,8 @@
 .visual-editor-layout { display: flex; flex-wrap: wrap; align-items: start; gap: 18px; }
 .visual-editor-layout > div:last-child { flex: 1 1 220px; }
 .visual-preview { width: min(256px, 100%); aspect-ratio: 1; border: 1px solid var(--line); border-radius: 6px; flex: 0 0 auto; }
+.visual-preview-draggable { touch-action: none; user-select: none; cursor: grab; }
+.visual-preview-draggable:active { cursor: grabbing; }
 .visual-assets-inline { margin-block: 16px; padding-block: 12px; border-block: 1px solid var(--line); }
 .visual-assets-inline > summary { cursor: pointer; font-weight: 600; }
 .visual-assets-inline > .visual-workspace { margin-top: 12px; }

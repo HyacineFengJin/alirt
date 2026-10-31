@@ -4,7 +4,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import type { SessionSnapshot } from '../shared/types';
 import { DEFAULT_VISUAL_CROP, type RoleVisualsView, type VisualImageAsset } from '../shared/visual-assets';
 import { api } from './api';
-import { recoverVisualDraft, saveVisualCommand, uploadTicketMatches, ViewImage, VisualAssetForm, visualAssetRef, VisualAssetsDialog, VisualAssetsInline, visualCommand, visualFileFingerprint, type VisualDraft } from './VisualAssets';
+import { dragVisualCrop, editVisualDraft, recoverVisualDraft, roleDraft, saveVisualCommand, uploadTicketMatches, ViewImage, VisualAssetForm, visualAssetRef, VisualAssetsDialog, VisualAssetsInline, visualCommand, visualFileFingerprint, writeVisualDraft, type VisualDraft } from './VisualAssets';
 
 const digest = 'a'.repeat(64);
 const asset: VisualImageAsset = { assetId: digest, sha256: digest, mimeType: 'image/webp', width: 512, height: 256, bytes: 120, title: '本地图片', originalSha256: 'b'.repeat(64), origin: { kind: 'upload' } };
@@ -66,8 +66,47 @@ it('offers an explicit role-scoped editor without fetching or mounting author to
   expect(html).toContain('同名 · role-one'); expect(html).toContain('同名 · role-two'); expect(html).toContain('256方头像裁剪预览');
   expect(html).toContain('缩放 2.00×'); expect(html).toContain('横向焦点 25%'); expect(html).toContain('纵向焦点 75%');
   expect(html).toContain('来源图片未缓存'); expect(html).toContain('编辑不会回写旧对白'); expect(html).toContain('当前故事与精确角色 ID'); expect(html).not.toContain('type="url"');
+  expect(html).toContain('拖动与滑杆仅修改草稿');
   for (const props of [{ session: { id: 's', perspective: 'role-one' } as SessionSnapshot, readOnly: false }, { session: { id: 's', perspective: 'author' } as SessionSnapshot, readOnly: true }]) {
     expect(renderToStaticMarkup(createElement(VisualAssetsInline, { ...props, refresh: async () => {} }))).toBe('');
     expect(renderToStaticMarkup(createElement(VisualAssetsDialog, { ...props, refresh: async () => {}, close: () => {} }))).toBe('');
   }
+});
+
+it('drags across the actual cover overflow and clamps edges without changing zoom or exposing uncovered area', () => {
+  const crop = { x: .5, y: .5, zoom: 1 }, before = { ...crop };
+  // A 2:1 image over a 256 square has exactly 256 horizontal overflow.
+  expect(dragVisualCrop({ width: 512, height: 256 }, crop, 64, 100, 256)).toEqual({ x: .25, y: .5, zoom: 1 });
+  // At 2x, the square image overflows by one frame on both axes.
+  expect(dragVisualCrop({ width: 256, height: 256 }, { ...crop, zoom: 2 }, 128, -128, 256)).toEqual({ x: 0, y: 1, zoom: 2 });
+  expect(dragVisualCrop(asset, { ...crop, zoom: 4 }, 10000, -10000, 256)).toEqual({ x: 0, y: 1, zoom: 4 });
+  expect(dragVisualCrop(asset, crop, 20, 20, 0)).toBe(crop); expect(crop).toEqual(before);
+});
+
+it('allows a new explicit edit of a saved role at the acknowledged revision and never alters an uncertain command', () => {
+  const state = view(), original = draft(), saved = { ...original, expectedRevision: 8, expectedVersion: 3, applied: true };
+  state.revision = 8; state.bindings[0].versions.push({ version: 3, revision: 8, sourceEventId: 'new-binding', value: { kind: 'asset', image: visualAssetRef(asset), crop: saved.crop } });
+  const edited = editVisualDraft(saved, { crop: { ...saved.crop, zoom: 3 }, reason: '再次调整同一角色' });
+  expect(visualCommand(state, edited, 'bind', 'explicit-second')).toMatchObject({ expectedRevision: 8, expectedVersion: 3, roleId: 'role-two', crop: { zoom: 3 } });
+  const pending = visualCommand(view(), original, 'bind', 'unknown-first');
+  expect(() => editVisualDraft({ ...original, pending }, { crop: DEFAULT_VISUAL_CROP })).toThrow('未确认请求');
+  expect(() => roleDraft(view(), { ...original, pending }, 'role-one')).toThrow('未确认请求');
+  const switched = roleDraft(state, edited, 'role-one');
+  expect(switched).toMatchObject({ roleId: 'role-one', expectedRevision: 8, expectedVersion: 0, reason: '', crop: DEFAULT_VISUAL_CROP });
+  expect(pending).toMatchObject({ requestId: 'unknown-first', expectedRevision: 7, roleId: 'role-two', crop: original.crop });
+});
+
+it('prevents a slower inline load or another dialog from overwriting a newer pending journal until explicitly re-read', () => {
+  const key = 'session-avatar-draft'; let raw: string | null = null;
+  const storage = { getItem: vi.fn(() => raw), setItem: vi.fn((_key: string, value: string) => { raw = value; }) };
+  const inlineRead = raw;
+  const first = draft(), dialogRaw = writeVisualDraft(storage, key, raw, first);
+  const command = visualCommand(view(), first, 'bind', 'unknown-bind');
+  const pendingRaw = writeVisualDraft(storage, key, dialogRaw, { ...first, pending: command });
+  // The old inline GET finishes after a dialog has prepared its exact request.
+  expect(() => writeVisualDraft(storage, key, inlineRead, { ...first, roleId: 'role-one' })).toThrow('另一处');
+  expect(raw).toBe(pendingRaw); expect(recoverVisualDraft(raw!).pending).toEqual(command);
+  const adopted = recoverVisualDraft(raw!);
+  expect(writeVisualDraft(storage, key, raw, adopted)).toBe(pendingRaw);
+  expect(storage.setItem).toHaveBeenCalledTimes(3);
 });

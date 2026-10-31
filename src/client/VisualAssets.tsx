@@ -6,6 +6,13 @@ import { api, ApiError, errorText } from './api';
 import './VisualAssets.css';
 
 export const visualAssetRef = (asset: VisualImageAsset): VisualImageRef => ({ assetId: asset.assetId, sha256: asset.sha256, mimeType: asset.mimeType, width: asset.width, height: asset.height, bytes: asset.bytes });
+/** Dragging moves the covered image, with focus measured over its overflow. */
+export function dragVisualCrop(image: Pick<VisualImageRef, 'width' | 'height'>, crop: VisualCrop, dx: number, dy: number, size: number): VisualCrop {
+  if (!Number.isFinite(size) || size <= 0 || !Number.isFinite(dx) || !Number.isFinite(dy) || !validVisualCrop(crop) || image.width <= 0 || image.height <= 0) return crop;
+  const ratio = image.width / image.height, overflowX = Math.max(1, ratio) * crop.zoom - 1, overflowY = Math.max(1, 1 / ratio) * crop.zoom - 1;
+  const clamp = (v: number) => Math.min(1, Math.max(0, v));
+  return { ...crop, x: overflowX > 0 ? clamp(crop.x - dx / size / overflowX) : crop.x, y: overflowY > 0 ? clamp(crop.y - dy / size / overflowY) : crop.y };
+}
 export function ViewImage({ image, crop = DEFAULT_VISUAL_CROP, name, diagnostic = false }: { image?: VisualImageRef; crop?: VisualCrop; name: string; diagnostic?: boolean }) {
   const [failed, setFailed] = useState<string>();
   const valid = !!image && validVisualImageRef(image) && validVisualCrop(crop), unavailable = !!image && (!valid || failed === image.assetId);
@@ -20,6 +27,16 @@ export interface VisualDraft {
   pending?: VisualCommand; pendingUpload?: UploadTicket; applied?: boolean;
 }
 const fresh = (): VisualDraft => ({ roleId: '', assetId: '', crop: { ...DEFAULT_VISUAL_CROP }, reason: '', uploadTitle: '' });
+const DRAFT_EVENT = 'rp:dialogue-visual-draft';
+const DRAFT_CONFLICT = '另一处头像编辑器已保存草稿。当前编辑已暂停；请明确载入另一处草稿，未覆盖或重发请求。';
+export function writeVisualDraft(storage: Pick<Storage, 'getItem' | 'setItem'>, key: string, expected: string | null, next: VisualDraft): string {
+  if (storage.getItem(key) !== expected) throw new Error(DRAFT_CONFLICT);
+  const raw = JSON.stringify(next); storage.setItem(key, raw); return raw;
+}
+export function editVisualDraft(draft: VisualDraft, patch: Partial<Pick<VisualDraft, 'assetId' | 'crop' | 'reason'>>): VisualDraft {
+  if (draft.pending || draft.pendingUpload) throw new Error('请先核对未确认请求；不能改写原目标或裁剪。');
+  return { ...draft, ...patch, applied: false };
+}
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const integer = (v: unknown): v is number => typeof v === 'number' && Number.isSafeInteger(v) && v >= 0;
 const identity = (v: unknown): v is string => typeof v === 'string' && !!v.trim() && v === v.trim() && !['__proto__', 'prototype', 'constructor'].includes(v);
@@ -60,7 +77,8 @@ export async function visualFileFingerprint(file: File): Promise<string> {
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', await file.arrayBuffer())), b => b.toString(16).padStart(2, '0')).join('');
 }
 export function uploadTicketMatches(ticket: UploadTicket, file: Pick<File, 'size' | 'type'>, sha256: string) { return ticket.size === file.size && ticket.mimeType === file.type && ticket.sha256 === sha256; }
-function roleDraft(view: RoleVisualsView, current: VisualDraft, roleId: string): VisualDraft {
+export function roleDraft(view: RoleVisualsView, current: VisualDraft, roleId: string): VisualDraft {
+  if (current.pending || current.pendingUpload) throw new Error('请先核对未确认请求；不能切换角色或取消其原草稿。');
   const visual = view.current.visuals.find(v => v.roleId === roleId && v.slot === 'dialogue-avatar');
   return { ...current, roleId, assetId: visual?.image.assetId ?? '', crop: { ...(visual?.crop ?? DEFAULT_VISUAL_CROP) }, expectedRevision: view.revision,
     expectedVersion: view.bindings.find(b => b.roleId === roleId && b.slot === 'dialogue-avatar')?.versions.at(-1)?.version ?? 0, reason: '', applied: false };
@@ -68,18 +86,23 @@ function roleDraft(view: RoleVisualsView, current: VisualDraft, roleId: string):
 
 export function VisualAssetForm({ view, draft, disabled, change, submit }: { view: RoleVisualsView; draft: VisualDraft; disabled: boolean; change: (d: VisualDraft) => void; submit: (operation: VisualCommand['operation']) => void }) {
   const role = view.roles.find(role => role.id === draft.roleId), selected = view.assets.find(asset => asset.assetId === draft.assetId);
-  const update = (patch: Partial<VisualDraft>) => change({ ...draft, ...patch, applied: false });
+  const drag = useRef<{ pointerId: number; x: number; y: number; size: number; crop: VisualCrop } | undefined>(undefined);
+  const update = (patch: Partial<Pick<VisualDraft, 'assetId' | 'crop' | 'reason'>>) => { if (!disabled && !draft.pending && !draft.pendingUpload) change(editVisualDraft(draft, patch)); };
   const valid = (op: VisualCommand['operation']) => { try { visualCommand(view, draft, op, 'form-validation'); return true; } catch { return false; } };
   return <fieldset disabled={disabled} className="visual-editor-form"><legend>对白头像 · 当前故事与角色 ID</legend>
     <p className="fine">按当前故事与精确角色 ID 保存对白头像。后续新正文保存头像快照；编辑不会回写旧对白。</p>
     <label>角色<select value={draft.roleId} onChange={e => { if ((draft.reason || draft.assetId) && !window.confirm('切换会载入所选角色当前设置，替换未保存的裁剪草稿。继续？')) return; change(roleDraft(view, draft, e.target.value)); }}><option value="">明确选择角色</option>{view.roles.map(role => <option key={role.id} value={role.id}>{role.name} · {role.id}</option>)}</select></label>
     {draft.roleId && !role && <p className="notice">此角色 ID 已不在当前故事，不能绑定其他同名角色。</p>}
-    <div className="visual-editor-layout"><div className="visual-preview" aria-label="256方头像裁剪预览"><ViewImage image={selected ? visualAssetRef(selected) : undefined} crop={draft.crop} name={role?.name ?? '未选角色'} diagnostic/></div>
+    <div className="visual-editor-layout"><div className={`visual-preview${selected && !disabled ? ' visual-preview-draggable' : ''}`} aria-label="256方头像裁剪预览" aria-disabled={disabled || !selected}
+      onPointerDown={e => { if (disabled || !selected || e.button !== 0 || draft.pending || draft.pendingUpload) return; e.preventDefault(); drag.current = { pointerId: e.pointerId, x: e.clientX, y: e.clientY, size: e.currentTarget.getBoundingClientRect().width, crop: { ...draft.crop } }; e.currentTarget.setPointerCapture(e.pointerId); }}
+      onPointerMove={e => { const start = drag.current; if (!start || start.pointerId !== e.pointerId || disabled || !selected) return; update({ crop: dragVisualCrop(selected, start.crop, e.clientX - start.x, e.clientY - start.y, start.size) }); }}
+      onPointerUp={e => { if (drag.current?.pointerId === e.pointerId) { drag.current = undefined; if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId); } }}
+      onPointerCancel={() => { drag.current = undefined; }} onLostPointerCapture={() => { drag.current = undefined; }}><ViewImage image={selected ? visualAssetRef(selected) : undefined} crop={draft.crop} name={role?.name ?? '未选角色'} diagnostic/></div>
       <div><label>本地图片库<select value={draft.assetId} onChange={e => update({ assetId: e.target.value, crop: { ...DEFAULT_VISUAL_CROP } })}><option value="">选择已保存图片</option>{view.assets.map(asset => <option key={asset.assetId} value={asset.assetId}>{asset.title} · {asset.origin.kind === 'builtin' ? '来源默认' : '本地上传'} · {asset.assetId.slice(0, 8)}</option>)}</select></label>
         <label>缩放 {draft.crop.zoom.toFixed(2)}×<input type="range" min="1" max="4" step="0.05" value={draft.crop.zoom} onChange={e => update({ crop: { ...draft.crop, zoom: Number(e.target.value) } })}/></label>
         <label>横向焦点 {Math.round(draft.crop.x * 100)}%<input type="range" min="0" max="1" step="0.01" value={draft.crop.x} onChange={e => update({ crop: { ...draft.crop, x: Number(e.target.value) } })}/></label>
         <label>纵向焦点 {Math.round(draft.crop.y * 100)}%<input type="range" min="0" max="1" step="0.01" value={draft.crop.y} onChange={e => update({ crop: { ...draft.crop, y: Number(e.target.value) } })}/></label>
-        <p className="fine">焦点按 cover 裁剪溢出范围定位；图库图片由宿主规范为 WebP。</p>
+        <p className="fine">拖动预览图片调整裁剪，或使用滑杆与键盘。焦点按 cover 裁剪溢出范围定位；图库图片由宿主规范为 WebP。拖动与滑杆仅修改草稿，需填写理由并保存。</p>
       </div></div>
     <label>修改理由<input value={draft.reason} onChange={e => update({ reason: e.target.value })}/></label>
     <div className="actions"><button type="button" disabled={!valid('bind')} onClick={() => submit('bind')}>保存对白头像</button><button type="button" disabled={!valid('hide')} onClick={() => submit('hide')}>隐藏头像</button><button type="button" disabled={!valid('reset')} onClick={() => submit('reset')}>恢复来源默认</button><button type="button" disabled={!role} onClick={() => change(roleDraft(view, draft, draft.roleId))}>取消本次编辑</button></div>
@@ -99,22 +122,40 @@ function VisualDialog(props: Context & { roleId?: string; close: () => void }) {
   return createPortal(<dialog ref={dialog} className="modal wide-modal visual-assets-dialog" onCancel={e => { e.preventDefault(); props.close(); }}><header className="modal-header"><h2>对白头像与本地图片库</h2><button type="button" onClick={props.close}>关闭（保留本地草稿）</button></header><div className="modal-body"><VisualWorkspace {...props} initialRoleId={props.roleId}/></div></dialog>, document.body);
 }
 function VisualWorkspace({ session, refresh, initialRoleId }: Context & { initialRoleId?: string }) {
-  const key = `rp:dialogue-visuals:${session.id}`, initial = useRef<{ draft: VisualDraft; error: string } | null>(null);
-  if (!initial.current) { try { const raw = localStorage.getItem(key); initial.current = { draft: raw ? recoverVisualDraft(raw) : { ...fresh(), roleId: initialRoleId ?? '' }, error: '' }; } catch (e) { initial.current = { draft: fresh(), error: errorText(e) }; } }
+  const key = `rp:dialogue-visuals:${session.id}`, initial = useRef<{ draft: VisualDraft; raw: string | null; error: string } | null>(null);
+  if (!initial.current) { let raw: string | null = null; try { raw = localStorage.getItem(key); initial.current = { draft: raw ? recoverVisualDraft(raw) : { ...fresh(), roleId: initialRoleId ?? '' }, raw, error: '' }; } catch (e) { initial.current = { draft: fresh(), raw, error: errorText(e) }; } }
   const [draft, setDraft] = useState(initial.current.draft), [blocked, setBlocked] = useState(initial.current.error), [view, setView] = useState<RoleVisualsView>();
+  const journal = useRef(initial.current.raw), draftRef = useRef(initial.current.draft), [draftConflict, setDraftConflict] = useState(false);
   const [loading, setLoading] = useState(false), [saving, setSaving] = useState(false), [missing, setMissing] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState(''), [loadedAt, setLoadedAt] = useState<number>();
   const [file, setFile] = useState<File>(), [fileHash, setFileHash] = useState(''), [readingFile, setReadingFile] = useState(false), flight = useRef(false), fileSequence = useRef(0);
-  function persist(next: VisualDraft) { setDraft(next); try { localStorage.setItem(key, JSON.stringify(next)); return true; } catch { setBlocked('本地草稿无法保存，为保留请求身份已暂停操作。'); return false; } }
+  function storeDraft(next: VisualDraft) {
+    try { journal.current = writeVisualDraft(localStorage, key, journal.current, next); window.dispatchEvent(new CustomEvent(DRAFT_EVENT, { detail: key })); return true; }
+    catch (e) { const conflict = e instanceof Error && e.message === DRAFT_CONFLICT; setDraftConflict(conflict); setBlocked(conflict ? DRAFT_CONFLICT : '本地草稿无法保存，为保留请求身份已暂停操作。'); return false; }
+  }
+  function persist(next: VisualDraft) { if (!storeDraft(next)) return false; draftRef.current = next; setDraft(next); return true; }
+  useEffect(() => {
+    const check = (event: Event) => {
+      if (event instanceof StorageEvent ? event.storageArea !== localStorage || event.key !== key && event.key !== null : (event as CustomEvent).detail !== key) return;
+      try { if (localStorage.getItem(key) !== journal.current) { setDraftConflict(true); setBlocked(DRAFT_CONFLICT); fileSequence.current++; setFile(undefined); setFileHash(''); setReadingFile(false); } }
+      catch { setBlocked('本地草稿无法读取，操作已暂停。'); }
+    };
+    window.addEventListener(DRAFT_EVENT, check); window.addEventListener('storage', check);
+    return () => { window.removeEventListener(DRAFT_EVENT, check); window.removeEventListener('storage', check); };
+  }, [key]);
+  function adoptDraft() {
+    try { const raw = localStorage.getItem(key), recovered = raw ? recoverVisualDraft(raw) : fresh(); journal.current = raw; draftRef.current = recovered; setDraft(recovered); setDraftConflict(false); setBlocked(''); setNotice('已载入另一处保存的完整草稿；未确认请求仍需明确核对后手动重试。'); }
+    catch (e) { setDraftConflict(false); setBlocked(errorText(e)); }
+  }
   async function load(sync = false, signal?: AbortSignal) {
     setLoading(true); setError('');
     try { const result = await api.sessionService<RoleVisualsView>(session.id, ROLE_VISUAL_SERVICE_ID, signal); if (signal?.aborted) return; setView(result); setMissing(false); setLoadedAt(result.revision);
-      if (!blocked) setDraft(current => {
+      if (!blocked) {
+        const current = draftRef.current;
         const next = { ...current };
         if (!current.pending && (sync || current.expectedRevision === undefined)) next.expectedRevision = result.revision;
-        if (!current.pending && current.expectedVersion === undefined && current.roleId) Object.assign(next, roleDraft(result, next, current.roleId));
-        try { localStorage.setItem(key, JSON.stringify(next)); } catch { setBlocked('本地草稿无法保存，操作已暂停。'); }
-        return next;
-      });
+        if (!current.pending && !current.pendingUpload && current.expectedVersion === undefined && current.roleId) Object.assign(next, roleDraft(result, next, current.roleId));
+        persist(next);
+      }
     } catch (e) { if (!signal?.aborted) { setMissing(e instanceof ApiError && e.status === 404); setError(errorText(e)); } } finally { if (!signal?.aborted) setLoading(false); }
   }
   useEffect(() => { const controller = new AbortController(); void load(false, controller.signal); return () => { controller.abort(); fileSequence.current++; }; }, [session.id]);
@@ -152,7 +193,7 @@ function VisualWorkspace({ session, refresh, initialRoleId }: Context & { initia
   }
   return <div className="visual-workspace">
     {missing && <p className="notice">此故事未安装对白头像服务，不会自动安装。</p>}{error && <p className="error" role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
-    {blocked && <div className="notice"><p>{blocked}</p><button disabled={!view || saving || loading} onClick={() => { if (window.confirm('请先核对已保存设置。明确放弃无法读取的草稿及可能未确认请求？')) { setBlocked(''); persist({ ...fresh(), expectedRevision: view!.revision }); } }}>放弃无法读取的本地草稿</button></div>}
+    {blocked && <div className="notice"><p>{blocked}</p>{draftConflict ? <button disabled={saving || loading} onClick={adoptDraft}>载入另一处保存的草稿</button> : <button disabled={!view || saving || loading} onClick={() => { if (window.confirm('请先核对已保存设置。明确放弃无法读取的草稿及可能未确认请求？') && persist({ ...fresh(), expectedRevision: view!.revision })) setBlocked(''); }}>放弃无法读取的本地草稿</button>}</div>}
     {view && !synchronized && <p className="notice">故事、头像读取结果或草稿版本不同，保存已暂停；请明确重新读取并核对草稿。</p>}
     {view && view.revision > session.revision && <button onClick={() => void refresh().catch(e => setError(errorText(e)))}>同步故事版本</button>}
     <button disabled={saving || loading} onClick={() => void load(true)}>重新读取设置与图库（保留草稿）</button>
