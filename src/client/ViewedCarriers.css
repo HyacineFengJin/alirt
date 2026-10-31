@@ -1,0 +1,5 @@
+.viewed-carrier { margin-block: 14px; padding: 16px; border: 1px solid var(--line); background: var(--paper); overflow-wrap: anywhere; }
+.viewed-carrier-screen { border-width: 3px; border-radius: 10px; }
+.viewed-carrier-paper { border-radius: 2px; border-inline-start-width: 3px; }
+.viewed-carrier h4 { margin: 0 0 8px; font-size: 15px; }
+.viewed-carrier .viewed-carrier-text { white-space: pre-wrap; margin: 14px 0 0; }

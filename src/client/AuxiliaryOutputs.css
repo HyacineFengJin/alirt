@@ -1,0 +1,17 @@
+.output-progress-parts {
+  display: grid;
+  gap: 10px;
+}
+.output-progress-part {
+  border-inline-start: 2px solid var(--line);
+  padding-inline-start: 10px;
+  min-width: 0;
+}
+.output-progress-part h4 {
+  font-size: 12px;
+  margin: 0 0 4px;
+}
+.parallel-scene-output > details { border: 1px solid var(--line); border-radius: 6px; padding: 10px; margin-top: 10px; }
+.parallel-scene-output summary { cursor: pointer; }
+.parallel-scene-output p { overflow-wrap: anywhere; }
+.parallel-scene-prose { border-top: 1px solid var(--line); padding-top: 10px; }

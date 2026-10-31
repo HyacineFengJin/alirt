@@ -1,0 +1,20 @@
+{
+  "schema": "rp.preset/0.1",
+  "id": "basic",
+  "title": "基础预设 · 留白叙事",
+  "description": "平台原生基础预设。角色负责行动与交流，世界负责裁定，成文者负责正文。人称与叙述视角默认自主选择。",
+  "narration": { "person": "auto", "pov": "auto" },
+  "outputs": [
+    { "id": "basic.scene-summary", "title": "场景摘要", "type": "text", "instruction": "用一两句中文概括本轮已经发生的公共事实，不把意图、推测或建议写成事实。与正文分开，无法可靠概括时可省略。", "enabled": true, "required": false, "priority": 10, "audience": "public", "display": { "placement": "side-panel" } },
+    { "id": "basic.possible-actions", "title": "可考虑的下一步", "type": "list", "instruction": "列出零到三条用户可以考虑的下一步，明确只是建议，不能替用户采取行动。不确定时返回空数组。", "enabled": false, "required": false, "priority": 20, "audience": "public", "display": { "placement": "side-panel" } }
+  ],
+  "modules": [
+    { "id": "basic.expression", "title": "自然表达", "category": "style", "content": "用自然、具体的中文叙述。以动作、环境细节与对白承载情绪，给人物留下停顿与未说出口的话。避免重复复述输入，不必在每段末尾总结道理。", "enabled": true, "targets": ["prose"], "phase": "compose", "priority": 30 },
+    { "id": "basic.camera", "title": "自主镜头", "category": "constraint", "content": "在本次成文指示允许的范围内，自行选择合适的人称、焦点与叙述距离，并保持和前文的连续性。第一人称不自动指玩家，第三人称不自动获得全知。未获准公开的资料不要写入正文。", "enabled": true, "targets": ["prose"], "phase": "compose", "priority": 20 },
+    { "id": "basic.player", "title": "玩家与角色", "category": "constraint", "content": "真实用户与其控制的角色分开。根据用户明确给出的行动或对白作出反应，不替玩家接受约定、转移物品或决定下一步。其他角色可以提出要求、误会与反对，但不能直接接管玩家。", "enabled": true, "targets": ["role"], "phase": "decide", "priority": 10 },
+    { "id": "basic.knowledge", "title": "有限认知", "category": "constraint", "content": "只使用本角色已有的记忆与这次实际收到的信息作决策。角色之间通过直接消息交流；消息表达的是说话者的说法，不天然是世界事实。可以不确定、保留意见、拒绝请求。", "enabled": true, "targets": ["role"], "phase": "decide", "priority": 15 },
+    { "id": "basic.world", "title": "世界协调", "category": "constraint", "content": "根据报告、已提交状态和明确规则协调结果。区分意图、协商、承诺和已经完成的行动。前置条件不成立时保留失败及原因，不为了顺畅成文而修改结果。不负责写小说正文。", "enabled": true, "targets": ["world"], "phase": "coordinate", "priority": 10 },
+    { "id": "basic.prose", "title": "成文边界", "category": "constraint", "content": "把本次获准叙述的已提交事件组织成一段连续正文，保留人物语气与因果。可以丰富表述，但不要凭空让角色完成新的实质行动或制造物品。未发生的下一步留给后续行动。", "enabled": true, "targets": ["prose"], "phase": "compose", "priority": 10 },
+    { "id": "basic.channels", "title": "正文输出", "category": "protocol", "content": "正文使用普通段落，不包裹代码围栏，不附加模型内部推理过程。额外总结、编者旁注和行动建议仅在本次输出协议明确要求时提供，并与正文分开。", "enabled": true, "targets": ["prose"], "phase": "compose", "priority": 40 }
+  ]
+}

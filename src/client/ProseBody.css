@@ -1,0 +1,34 @@
+.prose-dialogue {
+  width: fit-content;
+  max-width: min(90%, 42rem);
+  margin: 1.25em auto 1.25em 0;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-inline-start-width: 3px;
+  border-radius: 4px 14px 14px 14px;
+  background: var(--paper);
+  overflow-wrap: anywhere;
+}
+.prose-dialogue-player {
+  margin-inline: auto 0;
+  border-inline-start-width: 1px;
+  border-inline-end-width: 3px;
+  border-radius: 14px 4px 14px 14px;
+}
+.prose-dialogue-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-bottom: 6px;
+  font: 12px/1.6 sans-serif;
+  letter-spacing: 0;
+}
+.prose-dialogue-label small { opacity: .65; }
+.prose-dialogue-avatar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.prose-dialogue-avatar { display: inline-block; width: 42px; height: 42px; flex: 0 0 42px; border: 1px solid var(--line); border-radius: 50%; overflow: hidden; padding: 0; }
+button.prose-dialogue-avatar { cursor: pointer; }
+.prose .prose-dialogue-text, .prose-dialogue-text { white-space: pre-wrap; margin: 0; }
+@media (max-width: 520px) {
+  .prose-dialogue { max-width: 100%; padding: 9px 11px; }
+}

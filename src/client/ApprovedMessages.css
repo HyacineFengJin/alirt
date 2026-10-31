@@ -1,0 +1,85 @@
+.approved-messages {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  overflow: hidden;
+}
+.approved-messages > summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+.approved-messages > summary::-webkit-details-marker { display: none; }
+.approved-messages-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  margin-right: auto;
+  font-weight: 600;
+}
+.approved-messages-icon { flex: 0 0 auto; color: var(--accent); }
+.approved-messages-heading small { display: block; color: var(--muted); font-size: 10px; font-weight: 400; }
+.approved-messages-count { color: var(--muted); font-size: 11px; flex-shrink: 0; }
+.approved-messages-chevron { color: var(--muted); font-size: 22px; line-height: 1; transition: transform .15s ease; }
+.approved-messages[open] > summary .approved-messages-chevron { transform: rotate(90deg); }
+.approved-messages[open] > summary { border-bottom: 1px solid var(--line); }
+.approved-messages-content { padding: 14px; }
+.approved-messages .approved-messages-context { color: var(--muted); font-size: 10px; margin: 0 0 14px; }
+.approved-messages .approved-messages-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.approved-messages .approved-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--bg);
+  box-shadow: 0 2px 8px var(--shadow);
+  white-space: normal;
+  min-width: 0;
+}
+.approved-message-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  height: 40px;
+  border-radius: 6px;
+  background: var(--line);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 600;
+}
+.approved-message-main { min-width: 0; max-width: calc(100% - 50px); }
+.approved-message-sender { display: block; color: var(--muted); font-size: 10px; margin: 0 0 4px 2px; }
+.approved-messages .approved-message-text {
+  margin: 0;
+  padding: 9px 12px;
+  width: fit-content;
+  max-width: 200px;
+  border-radius: 10px 10px 10px 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  tab-size: 4;
+}
+.approved-messages .approved-messages-empty { color: var(--muted); margin: 6px 0; }
+.approved-messages-unavailable { padding: 14px; }
+.approved-messages-unavailable h3 { display: flex; align-items: center; gap: 9px; }
+.approved-messages-unavailable p { margin-bottom: 0; }
+.pending-host-outputs > h3 { font: 600 12px/1.8 sans-serif; margin: 0 0 6px; }
+@media (max-width: 480px) {
+  .approved-messages > summary, .approved-messages-content { padding: 11px; }
+  .approved-messages > summary { gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .approved-messages-chevron { transition: none; }
+}

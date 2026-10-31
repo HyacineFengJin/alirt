@@ -1,0 +1,596 @@
+.reading-surface {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.reading-surface[hidden],
+.creator-surface[hidden] {
+  display: none !important;
+}
+.creator-surface {
+  flex: 1;
+  min-width: 0;
+  padding: 22px 30px 30px;
+}
+.creator-workspace-head {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px 22px;
+}
+.creator-workspace-head h1 {
+  font:
+    500 27px/1.5 "Noto Serif SC",
+    "Songti SC",
+    serif;
+  margin: 2px 0;
+  letter-spacing: 0.07em;
+}
+.creator-workspace-head .eyebrow {
+  margin: 0;
+}
+.creator-layout {
+  display: grid;
+  grid-template-columns: 190px minmax(280px, 0.85fr) minmax(350px, 1.3fr);
+  gap: 20px;
+  align-items: start;
+}
+.creator-layout > * {
+  min-width: 0;
+}
+.creator-session-rail {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+}
+.creator-session-rail h2 {
+  font-size: 13px;
+  margin: 0;
+}
+.creator-session-choice {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 11px 10px;
+  margin-top: 9px;
+  background: transparent;
+  overflow-wrap: anywhere;
+}
+.creator-session-choice strong {
+  font-size: 12px;
+  font-weight: 500;
+  display: block;
+}
+.creator-session-choice small {
+  display: block;
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.creator-session-choice[aria-pressed="true"] {
+  background: var(--soft);
+  border-color: var(--accent);
+}
+.creator-rail-note {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.creator-global-error {
+  grid-column: 2 / -1;
+  border: 1px solid var(--danger);
+  padding: 12px;
+  border-radius: 7px;
+}
+.creator-conversation,
+.creator-document,
+.creator-new-session {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.creator-conversation {
+  grid-column: 2;
+  padding: 18px;
+}
+.creator-conversation > header {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 14px;
+}
+.creator-conversation h2 {
+  font-size: 17px;
+  margin: 5px 0;
+}
+.creator-messages {
+  max-height: 58vh;
+  overflow: auto;
+  padding: 5px 0;
+  scrollbar-gutter: stable;
+}
+.creator-message {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.creator-message:last-child {
+  border-bottom: 0;
+}
+.creator-message strong {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--accent);
+}
+.creator-message time {
+  color: var(--muted);
+  font-size: 9px;
+}
+.creator-message-user {
+  border-left: 2px solid var(--line);
+  padding-left: 10px;
+  margin-top: 10px;
+}
+.creator-message-assistant p {
+  font-size: 13px;
+  line-height: 1.95;
+}
+.creator-full-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.95;
+}
+.creator-empty {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.9;
+  padding: 20px 0;
+}
+.creator-run-state {
+  background: var(--soft);
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 11px;
+  margin-top: 12px;
+}
+.creator-run-state button {
+  font-size: 10px;
+  padding: 4px 7px;
+}
+.creator-instruction {
+  margin-top: 15px;
+}
+.creator-instruction > label {
+  font-size: 11px;
+}
+.creator-instruction > textarea {
+  font-size: 13px;
+  line-height: 1.8;
+  background: var(--bg);
+  margin-bottom: 10px;
+}
+.creator-instruction .primary {
+  font-size: 11px;
+  padding: 8px 10px;
+}
+.creator-instruction .notice button {
+  margin-right: 7px;
+  margin-bottom: 5px;
+  font-size: 10px;
+}
+.creator-run-history {
+  margin-top: 12px;
+}
+.creator-run-history > div {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+.creator-document {
+  grid-column: 3;
+  overflow: hidden;
+}
+.creator-document-head {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  padding: 17px 20px 12px;
+}
+.creator-document-head h2 {
+  font-size: 17px;
+  margin: 2px 0;
+}
+.creator-document-head .eyebrow {
+  margin: 0;
+}
+.creator-document-head button {
+  font-size: 10px;
+}
+.creator-tabs {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  padding: 0 20px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.creator-tabs button {
+  font-size: 11px;
+  border-color: transparent;
+  background: transparent;
+  padding: 5px 8px;
+}
+.creator-tabs button[aria-pressed="true"] {
+  background: var(--soft);
+  color: var(--accent);
+}
+.creator-document-body {
+  padding: 18px 20px;
+  max-height: 85vh;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+.creator-draft-content h2 {
+  font:
+    500 23px/1.6 "Noto Serif SC",
+    "Songti SC",
+    serif;
+  margin: 6px 0 12px;
+}
+.creator-draft-content > section {
+  margin-top: 24px;
+}
+.creator-draft-content h3,
+.creator-revisions h3 {
+  font-size: 13px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.creator-draft-content h4 {
+  font-size: 11px;
+  margin: 10px 0 5px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.creator-module,
+.creator-role {
+  border-top: 1px solid var(--line);
+  padding: 3px 0;
+}
+.creator-module > summary,
+.creator-role > summary,
+.creator-change-list > details > summary {
+  display: list-item;
+  color: var(--ink);
+}
+.creator-module > summary > span,
+.creator-role > summary > span,
+.creator-change-list > details > summary > span {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+}
+.creator-module .creator-full-text {
+  font-size: 12px;
+}
+.creator-feedback {
+  margin: 12px 20px;
+}
+.creator-diagnostics {
+  background: var(--soft);
+  margin: 12px 20px;
+  padding: 10px 13px;
+  border-radius: 5px;
+}
+.creator-diagnostics h3 {
+  margin: 0 0 7px;
+  font-size: 12px;
+}
+.creator-diagnostics ul {
+  margin: 0;
+  font-size: 11px;
+  color: var(--danger);
+}
+.creator-diagnostics code {
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+.creator-revisions label {
+  margin: 14px 0;
+}
+.creator-revisions select {
+  font-size: 11px;
+}
+.creator-revisions .row p {
+  font-size: 11px;
+}
+.creator-revisions .row button {
+  font-size: 10px;
+}
+.creator-change-list > details {
+  border-top: 1px solid var(--line);
+}
+.creator-change-list > details > summary {
+  overflow-wrap: anywhere;
+  font:
+    11px/1.8 ui-monospace,
+    monospace;
+  padding: 12px 0;
+}
+.creator-comparison {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  margin-bottom: 15px;
+}
+.creator-comparison > div {
+  min-width: 0;
+  background: var(--bg);
+  padding: 10px;
+  border-radius: 4px;
+}
+.creator-comparison h4 {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 400;
+  margin: 0 0 7px;
+}
+.creator-comparison pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  font:
+    11px/1.8 ui-monospace,
+    monospace;
+  margin: 0;
+}
+.creator-json-editor > textarea {
+  font:
+    11px/1.8 ui-monospace,
+    monospace;
+  min-height: 420px;
+  background: var(--bg);
+  white-space: pre;
+  overflow-wrap: normal;
+}
+.creator-json-editor .actions button {
+  font-size: 10px;
+}
+.creator-publish {
+  border-top: 1px solid var(--line);
+  padding: 15px 20px;
+  background: var(--bg);
+}
+.creator-publish strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.creator-publish .primary {
+  font-size: 11px;
+}
+.creator-publish .fine {
+  margin: 3px 0;
+}
+.creator-published {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.creator-published p {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.creator-published button {
+  font-size: 11px;
+  margin-top: 7px;
+}
+.creator-new-session {
+  grid-column: 2/-1;
+  padding: 26px;
+  max-width: 720px;
+  width: 100%;
+}
+.creator-new-session h2 {
+  font:
+    500 24px/1.6 "Noto Serif SC",
+    serif;
+  margin: 6px 0 23px;
+}
+.creator-new-session label {
+  margin-top: 18px;
+}
+.creator-new-session .actions {
+  margin: 23px 0 12px;
+}
+.appbar nav button[aria-pressed="true"] {
+  background: var(--soft);
+  border-color: var(--accent);
+}
+@media (max-width: 1150px) {
+  .creator-layout {
+    grid-template-columns: 175px minmax(0, 1fr);
+    gap: 18px;
+  }
+  .creator-conversation,
+  .creator-document {
+    grid-column: 2;
+  }
+  .creator-messages {
+    max-height: 440px;
+  }
+  .creator-document-body {
+    max-height: none;
+  }
+  .creator-new-session {
+    grid-column: 2;
+  }
+}
+@media (max-width: 650px) {
+  .creator-surface {
+    padding: 16px 15px 25px;
+  }
+  .creator-workspace-head {
+    align-items: flex-start;
+    padding: 0 0 17px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .creator-workspace-head h1 {
+    font-size: 24px;
+  }
+  .creator-workspace-head > button {
+    font-size: 11px;
+  }
+  .creator-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 17px;
+  }
+  .creator-layout > * {
+    width: 100%;
+  }
+  .creator-session-rail {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 14px;
+  }
+  .creator-session-choice {
+    display: inline-block;
+    width: 100%;
+  }
+  .creator-session-rail > p.creator-rail-note {
+    margin-top: 12px;
+  }
+  .creator-conversation {
+    padding: 15px;
+  }
+  .creator-document-head {
+    padding: 15px;
+  }
+  .creator-tabs {
+    padding: 0 15px 11px;
+    gap: 2px;
+  }
+  .creator-tabs button {
+    font-size: 10px;
+    padding: 5px 6px;
+  }
+  .creator-document-body {
+    padding: 14px 15px;
+  }
+  .creator-comparison {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .creator-json-editor > textarea {
+    font-size: 12px;
+    min-height: 360px;
+  }
+  .creator-instruction > textarea,
+  .creator-new-session input,
+  .creator-new-session select {
+    font-size: 16px;
+  }
+  .creator-publish {
+    padding: 14px 15px;
+  }
+  .creator-new-session {
+    padding: 20px 15px;
+  }
+  .creator-new-session h2 {
+    font-size: 22px;
+  }
+  .creator-feedback,
+  .creator-diagnostics {
+    margin: 12px 15px;
+  }
+}
+
+.structured-editor fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.structured-editor h3 {
+  margin-top: 22px;
+  font-size: 14px;
+}
+.structured-editor textarea {
+  line-height: 1.85;
+  font-size: 12px;
+}
+.structured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+.structured-grid > label {
+  min-width: 0;
+}
+.structured-module,
+.structured-role {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 11px;
+  margin-top: 10px;
+}
+.structured-module > summary,
+.structured-role > summary {
+  color: var(--ink);
+}
+.structured-module > summary > span,
+.structured-role > summary > span {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+}
+.structured-module > fieldset {
+  padding-bottom: 12px;
+}
+.structured-module .row > span {
+  overflow-wrap: anywhere;
+}
+.structured-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 8px 13px 8px 0;
+}
+.structured-check > input {
+  margin: 0;
+  width: 15px !important;
+  display: inline;
+}
+.structured-targets {
+  display: flex;
+  align-items: center;
+  gap: 3px 10px;
+  flex-wrap: wrap;
+}
+.structured-targets > span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.structured-activation {
+  border-left: 2px solid var(--line);
+  padding-left: 12px;
+}
+.creator-manual-save {
+  border-top: 1px solid var(--line);
+  margin-top: 20px;
+  padding-top: 10px;
+}
+.creator-manual-save .actions button {
+  font-size: 11px;
+}
+@media (max-width: 650px) {
+  .structured-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .structured-editor textarea {
+    font-size: 16px;
+  }
+  .structured-module {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+}

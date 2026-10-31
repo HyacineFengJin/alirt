@@ -1,0 +1,9 @@
+.runtime-field-policies { margin-block: 20px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.runtime-field-policies > summary, .runtime-field-policy > summary { cursor: pointer; font-weight: 600; }
+.runtime-field-policy { padding: 10px 0; border-top: 1px solid var(--line); }
+.runtime-field-policy fieldset { border: 0; padding: 0; min-width: 0; }
+.runtime-policy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 0 16px; }
+.runtime-policy-checks { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.runtime-policy-checks label { display: inline-flex; gap: 8px; align-items: center; }
+.runtime-policy-checks input[type="checkbox"] { flex: 0 0 auto; width: 15px; margin: 0; }
+.runtime-field-policy textarea { font-family: var(--font-mono, monospace); }

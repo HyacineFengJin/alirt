@@ -1,0 +1,175 @@
+.material-surface {
+  padding: 22px 30px 30px;
+  flex: 1;
+  min-width: 0;
+}
+.material-surface[hidden] {
+  display: none !important;
+}
+.material-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 0 5px 18px;
+}
+.material-head h1 {
+  font:
+    500 27px/1.5 "Noto Serif SC",
+    "Songti SC",
+    serif;
+  letter-spacing: 0.07em;
+  margin: 2px 0;
+}
+.material-head .eyebrow {
+  margin: 0;
+}
+.material-tabs {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  padding-bottom: 18px;
+}
+.material-tabs > button {
+  font-size: 12px;
+}
+.material-tabs > button[aria-pressed="true"] {
+  background: var(--soft);
+  border-color: var(--accent);
+}
+.material-layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 23px;
+  align-items: start;
+}
+.material-browser,
+.material-detail,
+.material-sources {
+  min-width: 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+}
+.material-browser > label:first-child {
+  margin-top: 0;
+}
+.material-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 75vh;
+  overflow: auto;
+}
+.material-choices > button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 11px 10px;
+  background: transparent;
+}
+.material-choices > button[aria-pressed="true"] {
+  background: var(--soft);
+  border-color: var(--accent);
+}
+.material-choices strong {
+  font-weight: 500;
+  display: block;
+  font-size: 12px;
+}
+.material-choices small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+.material-detail {
+  padding: 22px;
+}
+.material-detail-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 15px;
+  margin-bottom: 14px;
+}
+.material-detail-head .eyebrow,
+.material-detail-head .fine {
+  margin: 0;
+}
+.material-detail-head button {
+  font-size: 11px;
+}
+.material-detail > .creator-draft-content {
+  max-width: 850px;
+  margin: 24px auto 0;
+}
+.material-detail > .notice {
+  font-size: 11px;
+}
+.material-empty {
+  padding: 40px 10px;
+  text-align: center;
+  color: var(--muted);
+}
+.material-sources .library-grid {
+  grid-template-columns: 240px minmax(0, 1fr);
+}
+@media (max-width: 850px) {
+  .material-layout {
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 16px;
+  }
+  .material-detail {
+    padding: 17px;
+  }
+  .material-browser {
+    padding: 14px;
+  }
+}
+@media (max-width: 650px) {
+  .material-surface {
+    padding: 16px 15px 25px;
+  }
+  .material-head {
+    padding: 0 0 16px;
+  }
+  .material-head h1 {
+    font-size: 24px;
+  }
+  .material-head .actions button {
+    font-size: 11px;
+  }
+  .material-layout {
+    display: flex;
+    flex-direction: column;
+  }
+  .material-layout > * {
+    width: 100%;
+  }
+  .material-choices {
+    max-height: 290px;
+  }
+  .material-detail-head {
+    align-items: flex-start;
+  }
+  .material-detail-head .actions {
+    width: 100%;
+  }
+  .material-detail {
+    padding: 15px;
+  }
+  .material-sources {
+    padding: 14px;
+  }
+  .material-sources .library-grid {
+    display: flex;
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,9 @@
+.story-progress-editor { border-block: 1px solid var(--line); padding-block: 12px; margin-block: 16px; }
+.story-progress-editor > summary { cursor: pointer; font-weight: 600; }
+.story-progress-workspace { display: grid; gap: 12px; margin-top: 12px; }
+.story-progress-workspace fieldset { min-width: 0; border: 1px solid var(--line); display: grid; gap: 10px; }
+.story-progress-workspace label { display: grid; gap: 5px; }
+.story-progress-task-list section { padding: 8px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.story-progress-workspace .story-progress-evidence { max-height: 260px; overflow-y: auto; }
+.story-progress-workspace .story-progress-evidence label { display: flex; align-items: start; gap: 8px; }
+.story-progress-evidence small { display: block; overflow-wrap: anywhere; }

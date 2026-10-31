@@ -1,0 +1,8 @@
+.text-carrier-editor { border-block: 1px solid var(--line); padding-block: 12px; margin-block: 16px; }
+.text-carrier-editor > summary { cursor: pointer; font-weight: 600; }
+.text-carrier-workspace { display: grid; gap: 12px; margin-top: 12px; }
+.text-carrier-workspace fieldset { min-width: 0; display: grid; gap: 10px; border: 1px solid var(--line); }
+.text-carrier-workspace label { display: grid; gap: 5px; }
+.text-carrier-workspace .text-carrier-check { display: flex; align-items: center; gap: 8px; }
+.text-carrier-list section, .text-carrier-picker .modal-body > section { border-bottom: 1px solid var(--line); padding: 10px 0; overflow-wrap: anywhere; }
+.text-carrier-text { white-space: pre-wrap; overflow-wrap: anywhere; }

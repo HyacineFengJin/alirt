@@ -1,0 +1,9 @@
+.parallel-scenes-editor { border-block: 1px solid var(--line); padding-block: 12px; margin-block: 16px; }
+.parallel-scenes-editor > summary { cursor: pointer; font-weight: 600; }
+.parallel-scenes-workspace { display: grid; gap: 12px; margin-top: 12px; }
+.parallel-scenes-workspace fieldset { min-width: 0; border: 1px solid var(--line); display: grid; gap: 10px; }
+.parallel-scenes-workspace label { display: grid; gap: 5px; }
+.parallel-scenes-workspace .parallel-check { display: flex; align-items: start; gap: 8px; }
+.parallel-role-list { max-height: 300px; overflow-y: auto; }
+.parallel-role-list small { display: block; overflow-wrap: anywhere; }
+.parallel-grants section { padding: 10px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }

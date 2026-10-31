@@ -1,0 +1,12 @@
+.prose-review-dialog { width: min(920px, calc(100vw - 28px)); }
+.prose-review-dialog .modal-body { overflow-wrap: anywhere; }
+.prose-review-targets { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 12px; }
+.prose-review-targets > section, .prose-review-record { border: 1px solid var(--line); border-radius: 6px; padding: 12px; margin-bottom: 12px; }
+.prose-review-record > summary { cursor: pointer; }
+.prose-review-attempt { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 8px; }
+.prose-review-finding { border-inline-start: 2px solid var(--line); padding-inline-start: 12px; margin-top: 12px; }
+.prose-review-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.prose-review-finding blockquote { margin: 8px 0; padding: 8px 10px; background: var(--paper); border: 1px solid var(--line); }
+.prose-review-meta { margin-block: 8px; font-size: 12px; }
+.prose-review-meta > summary { cursor: pointer; opacity: .7; }
+.prose-review-attempt > h4 { margin-block: 12px 8px; }

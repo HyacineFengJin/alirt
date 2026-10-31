@@ -1,0 +1,40 @@
+{
+  "name": "alirt",
+  "version": "0.1.0-alpha.5",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n api,web 'tsx watch src/server/index.ts' 'vite --host 127.0.0.1'",
+    "build": "tsc --noEmit && vite build",
+    "start": "tsx src/server/index.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "setup:dsh": "node scripts/setup-dsh.mjs"
+  },
+  "dependencies": {
+    "ajv": "8.20.0",
+    "express": "^5.1.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "sharp": "0.35.5",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.2.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vite": "^7.1.0",
+    "vitest": "^3.2.0"
+  },
+  "license": "MIT",
+  "description": "A modular local roleplay agent workbench powered by DeepSeek Harness",
+  "engines": {
+    "node": ">=24"
+  }
+}

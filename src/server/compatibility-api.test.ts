@@ -1,0 +1,44 @@
+import { afterEach, expect, it } from 'vitest';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createImportService } from '../importer';
+import { createApp } from './app';
+
+const cleanups: (() => Promise<void>)[] = [];
+afterEach(async () => { for (const close of cleanups.splice(0)) await close(); });
+it('connects import conversion routes, persistent drafts and publication protection without a model call', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'rp-conversion-http-'));
+  cleanups.push(() => rm(root, { recursive: true, force: true }));
+  const imports = createImportService({ root: join(root, 'imports'), metadataRoot: false });
+  let modelCalls = 0;
+  const service = await createApp({ dataRoot: join(root, 'data'), importService: imports, catalog: async () => ({ cards: [], presets: [] }),
+    provider: { configured: () => false, run: async () => { ++modelCalls; throw new Error('Unexpected model call'); } } });
+  cleanups.unshift(service.close);
+  const server = service.app.listen(0, '127.0.0.1');
+  await new Promise<void>(resolve => server.on('listening', resolve));
+  cleanups.unshift(() => new Promise<void>(resolve => server.close(() => resolve())));
+  const address = server.address(); if (!address || typeof address === 'string') throw new Error('Expected local listener');
+  const url = `http://127.0.0.1:${address.port}`;
+  const post = (path: string, body: unknown) => fetch(url + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const original = 'Keep this exact SFW prompt, including punctuation.';
+  const imported = await imports.importBytes(Buffer.from(JSON.stringify({ prompts: [{ identifier: 'exact', content: original, enabled: true }] })), 'review.json');
+  const response = await post(`/api/imports/${imported.id}/conversions`, { requestId: 'same-create-request' });
+  expect(response.status).toBe(201); const created = await response.json(), id = created.conversion.creatorSessionId;
+  expect(created.session.id).toBe(id); expect(created.report.readyForReview).toBe(true);
+  expect((await (await post(`/api/imports/${imported.id}/conversions`, { requestId: 'same-create-request' })).json()).conversion.creatorSessionId).toBe(id);
+  const endpoint = `/api/creator/sessions/${id}`;
+  expect((await (await fetch(url + endpoint + '/conversion')).json()).report.readyForReview).toBe(true);
+  const document = structuredClone(created.session.document); document.modules[0].content = 'A lossy summary.';
+  expect((await post(endpoint + '/draft', { expectedRevision: 0, summary: 'A deliberately incomplete manual draft', document })).status).toBe(200);
+  const report = (await (await fetch(url + endpoint + '/conversion')).json()).report;
+  expect(report.preservation.nativePromptCopiesIntact).toBe(false);
+  const publication = await post(endpoint + '/publish', { expectedRevision: 1 });
+  expect(publication.status).toBe(422); expect((await publication.json()).error.code).toBe('CONVERSION_REVIEW_REQUIRED');
+  expect(service.creator.store.catalog()).toEqual({ cards: [], presets: [] });
+  expect((await post(endpoint + '/restore', { expectedRevision: 1, revision: 0 })).status).toBe(200);
+  expect((await (await fetch(url + endpoint + '/conversion')).json()).report.readyForReview).toBe(true);
+  const ordinary = await (await post('/api/creator/sessions', { kind: 'preset' })).json();
+  expect((await (await fetch(url + `/api/creator/sessions/${ordinary.id}/conversion`)).json()).report).toBeNull();
+  expect(modelCalls).toBe(0);
+});
